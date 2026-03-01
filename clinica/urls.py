@@ -7,7 +7,4 @@ urlpatterns = [
     
     # Rota para Sessões
     path('sessoes/', views.sessao_list_create, name='sessoes'),
-    
-    # Rota para Evoluções
-    path('evolucoes/', views.evolucao_list_create, name='evolucoes'),
 ]
