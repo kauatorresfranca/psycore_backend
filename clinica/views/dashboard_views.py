@@ -1,29 +1,51 @@
+from datetime import date
+from django.db.models import Sum
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from clinica.models import sessao
+from clinica.models.sessao import Sessao
 from ..models.paciente import Paciente
 
 @api_view(['GET'])
 def dashboard_view(request):
-    # Captura as duas datas. Se não vierem, podemos definir um padrão (ex: os últimos 7 dias)
     data_inicio = request.query_params.get('inicio')
     data_fim = request.query_params.get('fim')
+    hoje = date.today()
 
-    # Base da query
-    agendamentos = sessao.objects.all()
+    # Querysets
+    todos_pacientes = Paciente.objects.all()
+    sessoes_periodo = Sessao.objects.all()
 
-    # Aplica os filtros apenas se as datas forem enviadas
     if data_inicio and data_fim:
-        agendamentos = agendamentos.filter(
-            data__gte=data_inicio, 
-            data__lte=data_fim
-        )
+        sessoes_periodo = sessoes_periodo.filter(data__gte=data_inicio, data__lte=data_fim)
+
+    # Cálculos
+    pacientes_count = todos_pacientes.count()
+    consultas_hoje = Sessao.objects.filter(data=hoje).count()
+    
+    # Evoluções pendentes: sessões passadas sem texto de evolução
+    evolucoes_pendentes = Sessao.objects.filter(
+        data__lt=hoje, 
+        evolucao__in=['', None]
+    ).exclude(status='cancelado').count()
+
+    # Faturamento real (Soma do campo valor no período selecionado)
+    faturamento_total = sessoes_periodo.aggregate(total=Sum('valor'))['total'] or 0
+
+    # Agenda formatada para o Front-end
+    agenda_data = []
+    for s in sessoes_periodo.order_by('data', 'hora')[:10]:
+        agenda_data.append({
+            "id": s.id,
+            "paciente": s.paciente.nome,
+            "horario": f"{s.data.strftime('%d/%m')} - {s.hora.strftime('%H:%M')}",
+            "tipoConsulta": s.tipo_consulta
+        })
 
     return Response({
-        "total_no_periodo": agendamentos.count(),
-        "agenda": [
-            {"data": a.data, "hora": a.hora, "paciente": a.paciente.nome} 
-            for a in agendamentos.order_by('data', 'hora')
-        ]
+        "pacientes": pacientes_count,
+        "consultasHoje": consultas_hoje,
+        "evolucoesPendentes": evolucoes_pendentes,
+        "faturamento": float(faturamento_total),
+        "agenda": agenda_data
     })

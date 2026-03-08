@@ -7,4 +7,6 @@ urlpatterns = [
     
     # Rota para Sessões
     path('sessoes/', views.sessao_list_create, name='sessoes'),
+
+    path('dashboard/stats/', views.dashboard_view, name='dashboard'),
 ]
