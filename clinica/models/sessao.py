@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings # Adicione este import
 
 STATUS_CHOICES = [
     ('pendente', 'Pendente'),
@@ -10,6 +11,7 @@ class Sessao(models.Model):
     class Meta:
         ordering = ['data', 'hora']
 
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     paciente = models.ForeignKey('Paciente', on_delete=models.CASCADE, related_name='sessoes')
     data = models.DateField()
     hora = models.TimeField()

@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 STATUS_CHOICES = [
         ('ativo', 'Ativo'),
@@ -7,6 +8,7 @@ STATUS_CHOICES = [
     ]
 
 class Paciente(models.Model):
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     nome = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     numero_telefone = models.CharField(max_length=20)
