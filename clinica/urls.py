@@ -1,6 +1,5 @@
 from django.urls import path
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
 )
 from . import views 
@@ -8,7 +7,7 @@ from . import views
 urlpatterns = [
     # Rota para Login (Gera o Token)
     # O Front-end fará um POST para /api/login/ enviando username e password
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/', views.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
 
     # Rota para Atualizar o Token (Refresh)
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
